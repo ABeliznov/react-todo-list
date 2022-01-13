@@ -1,6 +1,7 @@
-import {createSlice, PayloadAction} from "@reduxjs/toolkit";
+import {createAsyncThunk, createSlice, PayloadAction} from "@reduxjs/toolkit";
 import {v4} from 'uuid'
-import {act} from "react-dom/test-utils";
+import {ToDoApi} from "../../../api/ToDoApi";
+import {ServerResponseType} from "../../../types";
 
 export type ToDoItemType = {
     id: string,
@@ -11,6 +12,13 @@ let initialState = {
     todo: [] as ToDoItemType[]
 }
 type initialStateType = typeof initialState
+
+
+export const get_todos = createAsyncThunk('todos/get_list', async () => {
+    return await ToDoApi.get_all()
+})
+
+
 const ToDoSlice = createSlice({
     name: 'todo',
     initialState: initialState,
@@ -32,7 +40,13 @@ const ToDoSlice = createSlice({
         deleteToDo: (state, action: PayloadAction<string>) => {
             state.todo = state.todo.filter(item => item.id !== action.payload)
         }
-    }
+    },
+    extraReducers: (builder) => {
+        builder.addCase(get_todos.fulfilled, (state, action: PayloadAction<ServerResponseType>) => {
+            console.log(action.payload)
+            state.todo = action.payload.data
+        })
+    },
 })
 
 export const {addToDo, toggleToDoSelected, deleteToDo} = ToDoSlice.actions

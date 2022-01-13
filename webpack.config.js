@@ -12,6 +12,7 @@
 const path = require('path')
 const {CleanWebpackPlugin} = require('clean-webpack-plugin')
 const HTMLWebpackPlugin = require('html-webpack-plugin')
+const FileManagerPlugin = require("filemanager-webpack-plugin");
 
 module.exports = {
     entry: ['@babel/polyfill', './src/index.tsx'],
@@ -21,12 +22,21 @@ module.exports = {
     },
     mode: "development",
     devServer:  {
-        port: 3000
+        port: 5000
     },
     resolve: {
         extensions: ['.js', '.ts', '.jsx', '.tsx']
     },
     plugins: [
+        new FileManagerPlugin({
+            events: {
+                onEnd: {
+                    move: [
+                        { source: '/dist', destination: '/backend/static' },
+                    ],
+                },
+            },
+        }),
         new HTMLWebpackPlugin({template: "./src/index.html"}),
         new CleanWebpackPlugin()
     ],

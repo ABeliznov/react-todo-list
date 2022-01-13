@@ -1,4 +1,4 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {
     Button,
     Checkbox,
@@ -15,7 +15,7 @@ import {
 import DeleteIcon from '@mui/icons-material/Delete';
 import {useDispatch, useSelector} from "react-redux";
 import {ToDoItemsState} from "../../store/selectors/ToDo.selector";
-import {addToDo, deleteToDo, ToDoItemType, toggleToDoSelected} from "../../store/slices/ToDo.slice";
+import {addToDo, deleteToDo, get_todos, ToDoItemType, toggleToDoSelected} from "../../store/slices/ToDo.slice";
 
 const ToDo = () => {
 
@@ -23,6 +23,13 @@ const ToDo = () => {
     let todoItems = useSelector(ToDoItemsState)
 
     const dispatch = useDispatch()
+
+    useEffect(() => {
+        if( todoItems.length === 0 )
+        {
+            dispatch(get_todos())
+        }
+    }, [todoItems])
 
     const handleDelete = (todo: ToDoItemType) => {
         dispatch(deleteToDo(todo.id))
