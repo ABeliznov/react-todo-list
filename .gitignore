@@ -2,3 +2,4 @@
 /.idea/
 /dist/
 /backend/static/
+/backend/db.sqlite3
