@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from "react";
 import {
+    Alert,
     Button,
     Checkbox,
     Container,
@@ -14,35 +15,39 @@ import {
 } from "@mui/material";
 import DeleteIcon from '@mui/icons-material/Delete';
 import {useDispatch, useSelector} from "react-redux";
-import {ToDoItemsState} from "../../store/selectors/ToDo.selector";
-import {addToDo, deleteToDo, get_todos, ToDoItemType, toggleToDoSelected} from "../../store/slices/ToDo.slice";
+import {ToDoIsFetchingState, ToDoItemsState} from "../../store/selectors/ToDo.selector";
+import {add_todo, delete_todo, get_todos, toggle_todo} from "../../store/slices/ToDo.slice";
+import {ToDoItemType} from "../../../types";
+import Preloader from "../Preloader/Preloader";
+import css from './ToDo.module.scss'
 
 const ToDo = () => {
 
     let [text, setText] = useState('')
     let todoItems = useSelector(ToDoItemsState)
+    let isFetching = useSelector(ToDoIsFetchingState)
+
 
     const dispatch = useDispatch()
 
     useEffect(() => {
-        if( todoItems.length === 0 )
-        {
-            dispatch(get_todos())
-        }
-    }, [todoItems])
+        dispatch(get_todos())
+    }, [])
 
     const handleDelete = (todo: ToDoItemType) => {
-        dispatch(deleteToDo(todo.id))
+        dispatch(delete_todo(todo.id))
     }
     const handleToggleSelected = (todo: ToDoItemType) => {
-        dispatch(toggleToDoSelected(todo.id))
+        dispatch(toggle_todo(todo))
     }
     const handleAdd = () => {
-        dispatch(addToDo(text))
+        dispatch(add_todo(text))
         setText('')
     }
 
     return <>
+      
+
         <Container sx={{mt: 5}}>
             <div >
                 <Grid container spacing={2}>
@@ -61,9 +66,10 @@ const ToDo = () => {
                                 fullWidth={true}  >Добавить</Button>
                     </Grid>
                     <Grid item xs={12}>
-                        <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
+
+                        { !isFetching ? <List sx={{ width: '100%', bgcolor: 'background.paper' }}>
                             {todoItems.map((value) => {
-                                const labelId = value.id
+                                const labelId = String(value.id)
 
                                 return (
                                     <ListItem
@@ -79,18 +85,18 @@ const ToDo = () => {
                                             <ListItemIcon>
                                                 <Checkbox
                                                     edge="start"
-                                                    checked={value.selected}
+                                                    checked={value.completed}
                                                     tabIndex={-1}
                                                     disableRipple
                                                     inputProps={{ 'aria-labelledby': labelId }}
                                                 />
                                             </ListItemIcon>
-                                            <ListItemText id={labelId} primary={value.text} />
+                                            <ListItemText id={labelId} primary={value.task} />
                                         </ListItemButton>
                                     </ListItem>
                                 );
                             })}
-                        </List>
+                        </List> :  <div className={css.todo_preloader}><Preloader /></div> }
                     </Grid>
                 </Grid>
             </div>

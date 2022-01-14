@@ -2,72 +2,64 @@ const {db} = require('../database')
 
 class TodoModel
 {
-    add(task, callback)
+    add(task)
     {
-        db.run(`INSERT INTO todo ('task') VALUES(?)`, [task], function(err) {
-            if (err)
-            {
-                console.log(err.message);
-                callback(false);
-            }
-            else
-            {
-                callback(true);
-            }
+        return new Promise((resolve, reject) => {
+            db.run(`INSERT INTO todo ('task') VALUES(?)`, [task], function(err) {
+                if (err)
+                    return reject(false)
+                resolve(this.lastID)
+            });
         });
     }
 
-    fetch(id, callback)
+    fetch(id)
     {
-        db.get('SELECT * FROM todo WHERE id = ?', [id], (err, data) => {
-
-            if( err )
-                callback(false);
-            else
-                callback(data);
-        });
+        return new Promise((resolve, reject) => {
+            db.get('SELECT * FROM todo WHERE id = ?', [id], (err, data) => {
+                if( err )
+                    return reject(false);
+                resolve(data);
+            });
+        })
     }
 
-    get_all(callback)
+    get_all()
     {
-        db.all('SELECT * FROM todo', (err, data) => {
-            if( err )
-                callback(false);
-            else
-                callback(data);
-        });
+        return new Promise((resolve, reject) => {
+            db.all('SELECT * FROM todo', (err, data) => {
+                if( err )
+                    return reject(false);
+                resolve(data);
+            });
+        })
+
     }
 
-    delete(id, callback)
+    delete(id)
     {
-        db.run(`DELETE FROM todo WHERE id = ?`, [id], function(err) {
-            if (err)
-            {
-                callback(false);
-            }
-            else
-            {
-                callback(true);
-            }
-        });
+        return new Promise((resolve, reject) => {
+            db.run(`DELETE FROM todo WHERE id = ?`, [id], function(err) {
+                if (err)
+                    return reject(false)
+                resolve(true)
+            });
+        })
     }
 
-    update(id, fields, callback)
+    update(id, fields)
     {
         let fieldsList = [];
         for( let key in fields )
             fieldsList.push(`${key}=${fields[key]}`)
         fields = fieldsList.join(', ');
 
-        db.run(`UPDATE todo SET ${fields}  WHERE id = ?`, [id], function(err) {
-            if (err)
-            {
-                callback(false);
-            }
-            else
-            {
-                callback(true);
-            }
+        return new Promise((resolve, reject) => {
+            db.run(`UPDATE todo SET ${fields}  WHERE id = ?`, [id], function(err) {
+                if (err)
+                    return reject(false)
+                resolve(true)
+            });
         });
     }
 

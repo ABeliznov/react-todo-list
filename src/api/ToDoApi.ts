@@ -1,14 +1,9 @@
 import axios from 'axios'
-import {ToDoItemType} from "../src/store/slices/ToDo.slice";
-import {ServerResponseType} from "../types";
+import {ServerResponseType, ToDoItemType} from "../../types";
 
 const baseURL = "http://localhost:3000/api/"
 const instance = axios.create({
     baseURL: baseURL,
-    withCredentials: true,
-    headers: {
-        'Content-Type': 'application/json',
-    }
 })
 
 
@@ -20,11 +15,11 @@ export const ToDoApi = {
         }).then(result => result.data)
     },
 
-    update: (id: string, fields: Omit<ToDoItemType, 'id'>) => {
+    update: (id: number, fields: Partial<Omit<ToDoItemType, 'id'>>) => {
         return instance.put<ServerResponseType>(`todo/${id}/`, fields).then(result => result.data)
     },
 
-    delete: (id: string) => {
+    delete: (id: number) => {
         return instance.delete(`todo/${id}/`).then(result => result.data)
     },
 

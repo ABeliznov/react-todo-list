@@ -31,8 +31,9 @@ module.exports = {
         new FileManagerPlugin({
             events: {
                 onEnd: {
+                    delete: ['./backend/static/'],
                     move: [
-                        { source: '/dist', destination: '/backend/static' },
+                        { source: './dist', destination: './backend/static' },
                     ],
                 },
             },
@@ -65,6 +66,11 @@ module.exports = {
                         presets: ['@babel/preset-env']
                     }
                 }
+            },
+            {
+                test: /\.js$/,
+                enforce: 'pre',
+                use: ['source-map-loader'],
             },
             {
                 test: /\.jsx$/,

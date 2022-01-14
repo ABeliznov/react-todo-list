@@ -10,46 +10,27 @@ const url = require('url');
 
 const PORT = process.env.PORT || 3000;
 
-function handleStaticPages(pathName, res) {
-    let ext = path.extname(pathName);
-    switch(ext) {
-        case '.css':
-            res.writeHead(200, {"Content-Type": "text/css"});
-            fs.readFile('./' + pathName, 'utf8', function(err, fd) {
-                res.end(fd);
-            });
-            console.log('Routed for Cascading Style Sheet '+ pathName +' Successfully\n');
-            break;
-        case '.js':
-            res.writeHead(200, {"Content-Type": "text/javascript"});
-            fs.readFile('./' + pathName, 'utf8', function(err, fd) {
-                res.end(fd);
-            });
-            console.log('Routed for Javascript '+ pathName +' Successfully\n');
-            break;
-    }
-}
-
 const server = http.createServer((req, res) => {
     res.statusCode = 200;
 
-    if ( req.method === 'OPTIONS' ) {
-        res.writeHead(200);
-        res.end();
-        return;
-    }
 
     let route = req.url.split('?')[0];
+    let staticPath = '/static' + route;
+    let ext = path.extname(route);
     let method = req.method;
-
 
     if( route.match(/\/api\/todo\//) )
     {
         res.setHeader('Content-Type', 'application/json');
-        res.setHeader('Access-Control-Allow-Origin', req.headers.origin);
+        res.setHeader('Access-Control-Allow-Origin', "*");
         res.setHeader('Access-Control-Request-Method', '*');
         res.setHeader("Access-Control-Allow-Methods", "OPTIONS, GET, POST, PUT, DELETE");
         res.setHeader("Access-Control-Allow-Headers", "*");
+
+        if ( req.method === 'OPTIONS' ) {
+            res.statusCode = 204;
+            res.end();
+        }
 
         let todo = new ToDoController();
         let url_var = route.match(/\/api\/todo\/(\d+)\/?$/);
@@ -77,18 +58,19 @@ const server = http.createServer((req, res) => {
             let id  = url_var[1];
             if(method === 'PUT')
             {
-                todo.fetch(id, (result) => {
+                todo.fetch(id).then(result => {
 
                     if( result )
                         todo.update(id, req, res);
                     else
                         res.end(stringify({status: 0}));
+                })
 
-                });
             }
             else if(method === 'DELETE')
             {
-                todo.fetch(id, (result) => {
+
+                todo.fetch(id).then((result) => {
 
                     if( result )
                         todo.delete(id, req, res);
@@ -107,23 +89,35 @@ const server = http.createServer((req, res) => {
     }
     else if( route === '/' )
     {
-        const build = fs.readFileSync(path.resolve('..', 'dist', 'index.html'));
+        const build = fs.readFileSync(path.resolve('static', 'index.html'));
         res.setHeader('Content-Type', 'text/html');
         res.end(build);
     }
-    else {
-
-        let ext = path.extname(route);
-        let pathName = url.parse(route).pathname;
+    else
+    {
         if( ext === '.js' || ext === '.css' )
         {
-            handleStaticPages(pathName, res);
+            switch(ext)
+            {
+                case '.css':
+                    res.writeHead(200, {"Content-Type": "text/css"});
+                    fs.readFile('./' + staticPath, 'utf8', function(err, fd) {
+                        res.end(fd);
+                    });
+                    break;
+                case '.js':
+                    res.writeHead(200, {"Content-Type": "text/javascript"});
+                    fs.readFile('./' + staticPath, 'utf8', function(err, fd) {
+                        res.end(fd);
+                    });
+                    break;
+            }
         }
         else
         {
             res.statusCode = 404;
             res.statusMessage = 'Not Found';
-            res.end(stringify({status: 0}));
+            res.end('404 Page Not Found');
         }
 
     }
