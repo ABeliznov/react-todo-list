@@ -2,8 +2,7 @@ const {db} = require('./database.js')
 
 db.serialize(function() {
     db.run(`
-        DROP TABLE 'todo';
-        CREATE TABLE 'todo' (
+        CREATE TABLE IF NOT EXISTS 'todo' (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             task VARCHAR(255),
             completed INTEGER DEFAULT '0'

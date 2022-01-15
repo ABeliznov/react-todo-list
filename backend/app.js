@@ -6,6 +6,7 @@ const {db} = require('./database');
 const fs = require('fs');
 const path = require('path');
 const url = require('url');
+const {page404, staticFile} = require("./routing");
 
 
 const PORT = process.env.PORT || 3000;
@@ -15,7 +16,6 @@ const server = http.createServer((req, res) => {
 
 
     let route = req.url.split('?')[0];
-    let staticPath = '/static' + route;
     let ext = path.extname(route);
     let method = req.method;
 
@@ -48,9 +48,7 @@ const server = http.createServer((req, res) => {
             }
             else
             {
-                res.statusCode = 404;
-                res.statusMessage = 'Not Found';
-                res.end(stringify({status: 0}));
+                page404(res, req);
             }
         }
         else if( !!url_var[1] )
@@ -58,32 +56,15 @@ const server = http.createServer((req, res) => {
             let id  = url_var[1];
             if(method === 'PUT')
             {
-                todo.fetch(id).then(result => {
-
-                    if( result )
-                        todo.update(id, req, res);
-                    else
-                        res.end(stringify({status: 0}));
-                })
-
+                todo.update(id, req, res);
             }
             else if(method === 'DELETE')
             {
-
-                todo.fetch(id).then((result) => {
-
-                    if( result )
-                        todo.delete(id, req, res);
-                    else
-                        res.end(stringify({status: 0}));
-
-                });
+                todo.delete(id, req, res);
             }
             else
             {
-                res.statusCode = 404;
-                res.statusMessage = 'Not Found';
-                res.end(stringify({status: 0}));
+                page404(res, req);
             }
         }
     }
@@ -97,27 +78,11 @@ const server = http.createServer((req, res) => {
     {
         if( ext === '.js' || ext === '.css' )
         {
-            switch(ext)
-            {
-                case '.css':
-                    res.writeHead(200, {"Content-Type": "text/css"});
-                    fs.readFile('./' + staticPath, 'utf8', function(err, fd) {
-                        res.end(fd);
-                    });
-                    break;
-                case '.js':
-                    res.writeHead(200, {"Content-Type": "text/javascript"});
-                    fs.readFile('./' + staticPath, 'utf8', function(err, fd) {
-                        res.end(fd);
-                    });
-                    break;
-            }
+            staticFile(ext, res, req)
         }
         else
         {
-            res.statusCode = 404;
-            res.statusMessage = 'Not Found';
-            res.end('404 Page Not Found');
+            page404(res, req);
         }
 
     }

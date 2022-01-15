@@ -13,6 +13,8 @@ class TodoController {
             let result = await model.add(post.task);
 
             if (result)
+            {
+                res.statusCode = 201;
                 res.end(stringify({
                     'status': 1, data: {
                         id: result,
@@ -20,6 +22,7 @@ class TodoController {
                         completed: false
                     }
                 }));
+            }
             res.end(stringify({'status': 0}));
 
         }
@@ -39,28 +42,34 @@ class TodoController {
     }
 
     delete = async (id, req, res) => {
-        let result = await model.delete(id);
-        if (result)
-            res.end(stringify({status: 1}));
-        else
-            res.end(stringify({status: 0}));
+
+        let todo = await this.fetch(id)
+        if( todo )
+        {
+            let result = await model.delete(id);
+            if (result)
+                res.end(stringify({status: 1}));
+        }
+        res.end(stringify({status: 0}));
     }
 
     update = async (id, req, res) => {
 
-        let post = await getPostData(req)
-        if ('completed' in post ) {
-            let fields = {
-                'completed': +post.completed
+        let todo = await this.fetch(id)
+        if( todo )
+        {
+            let post = await getPostData(req)
+            if ('completed' in post ) {
+                let fields = {
+                    'completed': +post.completed
+                }
+                let result = await model.update(id, fields);
+                if (result)
+                    res.end(stringify({status: 1}));
             }
-            let result = await model.update(id, fields);
-            if (result)
-                res.end(stringify({status: 1}));
-            else
-                res.end(stringify({status: 0}));
-        } else {
-            res.end(stringify({status: 0}));
         }
+        res.end(stringify({status: 0}));
+
     }
 }
 
